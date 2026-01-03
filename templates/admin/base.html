@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard - PSLVNews{% endblock %}</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Admin Sidebar -->
+        <div class="admin-sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-newspaper"></i>
+                    <span>PSLVNews Admin</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-item {% if request.endpoint == 'admin.admin_dashboard' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ url_for('admin.admin_news') }}" class="nav-item {% if 'admin_news' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-newspaper"></i>
+                    <span>News</span>
+                </a>
+                <a href="{{ url_for('admin.admin_users') }}" class="nav-item {% if request.endpoint == 'admin.admin_users' %}active{% endif %}">
+                    <i class="fas fa-users"></i>
+                    <span>Users</span>
+                </a>
+                <a href="{{ url_for('admin.admin_sources') }}" class="nav-item {% if request.endpoint == 'admin.admin_sources' %}active{% endif %}">
+                    <i class="fas fa-globe"></i>
+                    <span>Sources</span>
+                </a>
+                <a href="{{ url_for('admin.admin_analytics') }}" class="nav-item {% if request.endpoint == 'admin.admin_analytics' %}active{% endif %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="{{ url_for('admin.admin_settings') }}" class="nav-item {% if request.endpoint == 'admin.admin_settings' %}active{% endif %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="admin-user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div class="user-details">
+                        <span class="user-name">{{ session.get('user_name', 'Admin User') }}</span>
+                        <span class="user-role">Administrator</span>
+                    </div>
+                </div>
+                <a href="{{ url_for('login') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="admin-main">
+            <!-- Header -->
+            <header class="admin-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+                </div>
+                
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="action-btn" onclick="refreshData()">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>Refresh</span>
+                        </button>
+                        <div class="notification-bell">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">3</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                {% block breadcrumb %}
+                <a href="{{ url_for('admin.admin_dashboard') }}">Admin</a>
+                {% endblock %}
+            </div>
+            
+            <!-- Main Content Area -->
+            <main class="admin-content">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading...</p>
+        </div>
+    </div>
+    
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+    
+    <!-- News Details Modal -->
+    <div id="news-details-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content news-modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">News Article Details</h2>
+                <button class="modal-close" onclick="closeNewsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="news-modal-body">
+                <!-- Content will be populated by JavaScript -->
+                <div class="modal-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading article details...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

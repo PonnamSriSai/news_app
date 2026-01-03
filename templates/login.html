@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>PSLVNews - India's #1 Hyperlocal Short News App</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+
+</head>
+<body>
+    <div id="login-modal" class="modal-overlay" style="display: block;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Login to PSLVNews</h2>
+      <button class="modal-close" onclick="closeModal('login-modal')">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <form action="{{ url_for("login") }}" method="post" id="login-form" class="modal-form" onsubmit="">
+  <div class="form-group">
+    <label for="login-email" class="form-label">Email</label>
+    <input type="email" id="login-email" name="email" class="form-input" required>
+  </div>
+
+  <div class="form-group">
+    <label for="login-password" class="form-label">Password</label>
+    <input type="password" id="login-password" name="password" class="form-input" required>
+  </div>
+
+  <button type="submit" class="modal-submit-btn">Login</button>
+</form>
+
+    <div class="modal-footer">
+      <p>Don't have an account? <a href="{{ url_for("register")}}" onclick="">Register here</a></p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

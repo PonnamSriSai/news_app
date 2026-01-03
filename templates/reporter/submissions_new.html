@@ -1,0 +1,258 @@
+{% extends "reporter/base.html" %}
+
+{% block title %}My Submissions - PSLVNews Reporter{% endblock %}
+
+{% block page_title %}My News Submissions{% endblock %}
+
+{% block breadcrumb %}
+<a href="{{ url_for('reporter.reporter_dashboard') }}">Reporter</a>
+<span class="separator">/</span>
+<span>My Submissions</span>
+{% endblock %}
+
+{% block content %}
+<div class="submissions-content-wrapper">
+    <!-- Submissions Header with Stats -->
+    <div class="submissions-header-new">
+        <div class="header-content">
+            <div>
+                <h1>Your News Submissions</h1>
+                <p>Track your submitted news and their processing status</p>
+            </div>
+            <div class="submissions-stats-new">
+                <div class="submission-stat-new">
+                    <div class="submission-stat-value-new" id="total-submissions">{{ submissions|length if submissions else 0 }}</div>
+                    <div class="submission-stat-label-new">Total</div>
+                </div>
+                <div class="submission-stat-new">
+                    <div class="submission-stat-value-new" id="verified-count">{{ submissions|selectattr('status', 'equalto', 'verified')|list|length if submissions else 0 }}</div>
+                    <div class="submission-stat-label-new">Verified</div>
+                </div>
+                <div class="submission-stat-new">
+                    <div class="submission-stat-value-new" id="monitoring-count">{{ submissions|selectattr('status', 'equalto', 'monitoring')|list|length if submissions else 0 }}</div>
+                    <div class="submission-stat-label-new">Monitoring</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="loading-state" style="display: none;">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading your submissions...</p>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    <div id="error-message" class="alert alert-error" style="display: none;"></div>
+
+    <!-- Submissions List -->
+    <div id="submissions-list">
+        {% if submissions and submissions|length > 0 %}
+            {% for submission in submissions %}
+            <div class="submission-card-new" data-submission-id="{{ submission._id }}">
+                <div class="submission-header">
+                    <div class="submission-title-section">
+                        <h3 class="submission-title">{{ submission.title or 'Untitled News Story' }}</h3>
+                        <div class="submission-status status-{{ submission.status }}">
+                            <i class="fas fa-circle"></i>
+                            {{ submission.status|title }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="submission-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>{{ submission.created_at.strftime('%B %d, %Y at %I:%M %p') if submission.created_at else 'Date not available' }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>
+                            {% if submission.location %}
+                                {{ submission.location.district }}, {{ submission.location.state }}
+                            {% else %}
+                                Location not specified
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-link"></i>
+                        <span>{{ submission.source or 'Source not specified' }}</span>
+                    </div>
+                </div>
+
+                <div class="submission-content">
+                    <p>{{ (submission.full_text or submission.content or '')[:200] }}{% if (submission.full_text or submission.content or '')|length > 200 %}...{% endif %}</p>
+                </div>
+
+                <!-- Media Attachments -->
+                {% if submission.associateMedia and (submission.associateMedia.images or submission.associateMedia.videos) %}
+                <div class="submission-media">
+                    {% if submission.associateMedia.images %}
+                        {% for image_path in submission.associateMedia.images %}
+                        <div class="media-thumbnail">
+                            <img src="{{ image_path }}" alt="News image" loading="lazy" />
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                    {% if submission.associateMedia.videos %}
+                        {% for video_path in submission.associateMedia.videos %}
+                        <div class="media-thumbnail">
+                            <video src="{{ video_path }}" muted preload="metadata"></video>
+                            <div class="media-play-icon">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- MongoDB Information -->
+                <div class="mongodb-info">
+                    <h4>
+                        <i class="fas fa-database"></i>
+                        Submission Details
+                    </h4>
+                    <div class="mongodb-details">
+                        <div class="mongodb-field">
+                            <span class="mongodb-label">ID:</span>
+                            <span class="mongodb-value">{{ submission._id|string }}</span>
+                        </div>
+                        <div class="mongodb-field">
+                            <span class="mongodb-label">Status:</span>
+                            <span class="mongodb-value">{{ submission.status|title }}</span>
+                        </div>
+                        {% if submission.credibility is not none %}
+                        <div class="mongodb-field">
+                            <span class="mongodb-label">Credibility:</span>
+                            <span class="mongodb-value">{{ submission.credibility }}</span>
+                        </div>
+                        {% endif %}
+                        {% if submission.fake_prob is not none %}
+                        <div class="mongodb-field">
+                            <span class="mongodb-label">Fake Probability:</span>
+                            <span class="mongodb-value">{{ submission.fake_prob }}</span>
+                        </div>
+                        {% endif %}
+                        {% if submission.sentiment is not none %}
+                        <div class="mongodb-field">
+                            <span class="mongodb-label">Sentiment:</span>
+                            <span class="mongodb-value">{{ submission.sentiment }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Submission Stats -->
+                <div class="submission-stats">
+                    {% if submission.credibility is not none %}
+                    <div class="stat-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Credibility: {{ submission.credibility }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if submission.fake_prob is not none %}
+                    <div class="stat-item">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Fake Prob: {{ submission.fake_prob }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if submission.sentiment is not none %}
+                    <div class="stat-item sentiment-{{ 'neutral' }}">
+                        <i class="fas fa-heart"></i>
+                        <span>Sentiment: {{ submission.sentiment }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if submission.likes is not none %}
+                    <div class="stat-item">
+                        <i class="fas fa-thumbs-up"></i>
+                        <span>Likes: {{ submission.likes }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div class="empty-state-content">
+                    <i class="fas fa-file-alt empty-state-icon"></i>
+                    <h3>No submissions yet</h3>
+                    <p>You haven't submitted any news articles yet. Start by creating your first submission from the dashboard.</p>
+                    <a href="{{ url_for('reporter.reporter_dashboard') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Submit Your First Story
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile media play functionality
+        const mediaThumbnails = document.querySelectorAll('.media-thumbnail video');
+        mediaThumbnails.forEach(video => {
+            video.addEventListener('click', function() {
+                if (this.paused) {
+                    this.play();
+                    const playIcon = this.parentNode.querySelector('.media-play-icon');
+                    if (playIcon) playIcon.style.display = 'none';
+                } else {
+                    this.pause();
+                    const playIcon = this.parentNode.querySelector('.media-play-icon');
+                    if (playIcon) playIcon.style.display = 'flex';
+                }
+            });
+            
+            video.addEventListener('play', function() {
+                const playIcon = this.parentNode.querySelector('.media-play-icon');
+                if (playIcon) playIcon.style.display = 'none';
+            });
+            
+            video.addEventListener('pause', function() {
+                const playIcon = this.parentNode.querySelector('.media-play-icon');
+                if (playIcon) playIcon.style.display = 'flex';
+            });
+        });
+
+        // Refresh functionality
+        window.refreshData = function() {
+            const loadingState = document.getElementById('loading-state');
+            const errorMessage = document.getElementById('error-message');
+            
+            loadingState.style.display = 'block';
+            errorMessage.style.display = 'none';
+            
+            fetch('/reporter/submissions')
+                .then(response => response.json())
+                .then(data => {
+                    loadingState.style.display = 'none';
+                    
+                    if (data.success) {
+                        location.reload(); // Simple refresh for now
+                    } else {
+                        throw new Error(data.error || 'Failed to load submissions');
+                    }
+                })
+                .catch(error => {
+                    loadingState.style.display = 'none';
+                    errorMessage.textContent = `Error loading submissions: ${error.message}`;
+                    errorMessage.style.display = 'block';
+                });
+        };
+
+        // Auto-refresh every 30 seconds (optional)
+        // setInterval(refreshData, 30000);
+    });
+</script>
+{% endblock %}

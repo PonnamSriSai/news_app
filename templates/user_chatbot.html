@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pinecone News Assistant</title>
+
+    <!-- Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a, #020617);
+            color: #e5e7eb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-app {
+            width: 420px;
+            height: 600px;
+            background: #020617;
+            border-radius: 14px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 15px;
+            background: #020617;
+            border-bottom: 1px solid #1e293b;
+            text-align: center;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .chat-header span {
+            color: #38bdf8;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 14px;
+            max-width: 85%;
+            line-height: 1.4;
+        }
+
+        .user {
+            align-self: flex-end;
+            background: #2563eb;
+            padding: 10px 14px;
+            border-radius: 12px 12px 0 12px;
+            color: white;
+        }
+
+        .bot {
+            align-self: flex-start;
+            background: #0f172a;
+            padding: 12px 14px;
+            border-radius: 12px 12px 12px 0;
+            border: 1px solid #1e293b;
+        }
+
+        .bot h2, .bot h3 {
+            margin-top: 8px;
+            color: #38bdf8;
+        }
+
+        .bot ul {
+            padding-left: 18px;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 12px;
+            border-top: 1px solid #1e293b;
+            background: #020617;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            background: #020617;
+            color: #e5e7eb;
+            border: 1px solid #1e293b;
+        }
+
+        .chat-input button {
+            margin-left: 8px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background: #38bdf8;
+            color: #020617;
+            font-weight: 600;
+        }
+
+        .chat-input button:hover {
+            background: #0ea5e9;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-app">
+    <div class="chat-header">
+        🧠 <span> News chat</span>
+    </div>
+
+    <div class="chat-messages" id="messages"></div>
+
+    <div class="chat-input">
+        <input type="text" id="input" placeholder="Ask for top news..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+const messages = document.getElementById("messages");
+const input = document.getElementById("input");
+
+function addMessage(content, type) {
+    const div = document.createElement("div");
+    div.className = `message ${type}`;
+
+    if (type === "bot") {
+        div.innerHTML = marked.parse(content); // Markdown rendering
+    } else {
+        div.textContent = content;
+    }
+
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+}
+
+function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    addMessage(text, "user");
+    input.value = "";
+
+    fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text })
+    })
+    .then(res => res.json())
+    .then(data => {
+        addMessage(data.reply, "bot");
+    })
+    .catch(() => {
+        addMessage("⚠️ Error connecting to server.", "bot");
+    });
+}
+
+input.addEventListener("keypress", function(e) {
+    if (e.key === "Enter") sendMessage();
+});
+</script>
+
+</body>
+</html>

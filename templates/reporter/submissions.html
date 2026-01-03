@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>My Submissions - PSLVNews Reporter Dashboard</title>
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/reporter-styles.css') }}">
+  <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</head>
+<body class="reporter-module">
+  <div id="dashboard-page" class="dashboard-page">
+    <!-- Background Effects -->
+    <div class="dashboard-bg-effect-1"></div>
+    <div class="dashboard-bg-effect-2"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <a href="{{ url_for('reporter.reporter_dashboard') }}" class="sidebar-button">
+          <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+          </svg>
+          Back to Dashboard
+        </a>
+      </div>
+      <div class="sidebar-content">
+        <div class="sidebar-section">
+          <h3 class="sidebar-section-title">Reporter Tools</h3>
+        </div>
+        <div class="sidebar-nav-item">
+          <a href="{{ url_for('reporter.reporter_dashboard') }}" class="sidebar-nav-button">
+            <svg class="sidebar-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            Submit News
+          </a>
+        </div>
+        <div class="sidebar-nav-item">
+          <a href="{{ url_for('reporter.get_submissions') }}" class="sidebar-nav-button active">
+            <svg class="sidebar-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            My Submissions
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="dashboard-header">
+        <div class="header-content">
+          <h1 class="header-title">📊 My News Submissions</h1>
+          <div class="header-actions">
+            <button class="btn-secondary" onclick="loadSubmissions()">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+              </svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="content-area">
+        <!-- Submissions Header with Stats -->
+        <div class="submissions-header">
+          <div>
+            <h2 class="submissions-title">Your News Submissions</h2>
+            <p style="margin: 0; opacity: 0.9; font-size: 1rem;">Track your submitted news and their processing status</p>
+          </div>
+          <div class="submissions-stats">
+            <div class="submission-stat">
+              <div class="submission-stat-value" id="total-submissions">{{ submissions|length if submissions else 0 }}</div>
+              <div class="submission-stat-label">Total</div>
+            </div>
+            <div class="submission-stat">
+              <div class="submission-stat-value" id="verified-count">{{ submissions|selectattr('status', 'equalto', 'verified')|list|length if submissions else 0 }}</div>
+              <div class="submission-stat-label">Verified</div>
+            </div>
+            <div class="submission-stat">
+              <div class="submission-stat-value" id="monitoring-count">{{ submissions|selectattr('status', 'equalto', 'monitoring')|list|length if submissions else 0 }}</div>
+              <div class="submission-stat-label">Monitoring</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="error-message" style="display: none;"></div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="loading-state" style="display: none;">
+          <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: #f5c518; animation: spin 1s linear infinite;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          <p style="font-size: 1.1rem; font-weight: 500;">Loading your submissions...</p>
+        </div>
+
+        <!-- Submissions List -->
+        <div id="submissions-list">
+          {% if submissions and submissions|length > 0 %}
+            {% for submission in submissions %}
+            <div class="submission-card" data-submission-id="{{ submission._id }}">
+              <div class="submission-header">
+                <h3 class="submission-title">{{ submission.title }}</h3>
+                <span class="submission-status status-{{ submission.status }}">
+                  {% if submission.status == 'verified' %}
+                    ✓ Verified
+                  {% elif submission.status == 'monitoring' %}
+                    ⚠ Monitoring
+                  {% else %}
+                    ⏳ {{ submission.status|title }}
+                  {% endif %}
+                </span>
+              </div>
+
+              <div class="submission-meta">
+                <div class="submission-meta-item">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  {{ submission.created_at.strftime('%B %d, %Y at %I:%M %p') if submission.created_at else 'Unknown date' }}
+                </div>
+                <div class="submission-meta-item">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                  {{ submission.location.district if submission.location else 'Unknown' }}, {{ submission.location.state if submission.location else 'Unknown' }}
+                </div>
+                <div class="submission-meta-item">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+                  </svg>
+                  {{ submission.source }}
+                </div>
+              </div>
+
+              <div class="submission-content">
+                {{ submission.content[:200] }}{% if submission.content|length > 200 %}...{% endif %}
+              </div>
+
+              <!-- Media Attachments -->
+              {% if submission.associateMedia and (submission.associateMedia.images or submission.associateMedia.videos) %}
+              <div class="submission-media">
+                {% if submission.associateMedia.images %}
+                  {% for image in submission.associateMedia.images %}
+                    <img src="/{{ image }}" alt="News image" class="media-thumbnail" />
+                  {% endfor %}
+                {% endif %}
+                {% if submission.associateMedia.videos %}
+                  {% for video in submission.associateMedia.videos %}
+                    <div class="media-thumbnail-placeholder">
+                      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m-9 4h10a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                      </svg>
+                    </div>
+                  {% endfor %}
+                {% endif %}
+              </div>
+              {% endif %}
+
+              <!-- MongoDB Storage Information -->
+              <div class="mongodb-info">
+                <div class="mongodb-title">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                  </svg>
+                  MongoDB Storage Details
+                </div>
+                <div class="mongodb-details">
+                  <div class="mongodb-field">
+                    <span class="mongodb-label">Document ID:</span>
+                    <span class="mongodb-value">{{ submission._id }}</span>
+                  </div>
+                  <div class="mongodb-field">
+                    <span class="mongodb-label">Database:</span>
+                    <span class="mongodb-value">newsai_db</span>
+                  </div>
+                  <div class="mongodb-field">
+                    <span class="mongodb-label">Collection:</span>
+                    <span class="mongodb-value">news_master</span>
+                  </div>
+                  <div class="mongodb-field">
+                    <span class="mongodb-label">Category:</span>
+                    <span class="mongodb-value">{{ submission.category }}</span>
+                  </div>
+                  <div class="mongodb-field">
+                    <span class="mongodb-label">Created:</span>
+                    <span class="mongodb-value">{{ submission.created_at.isoformat() if submission.created_at else 'Unknown' }}</span>
+                  </div>
+                  <div class="mongodb-field">
+                    <span class="mongodb-label">Published:</span>
+                    <span class="mongodb-value">{{ submission.publishedAt if submission.publishedAt else 'Not published' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="submission-footer">
+                <div class="submission-stats">
+                  <div class="submission-stat-item">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="credibility-score">{{ "%.1f"|format(submission.credibility * 100) }}% Credibility</span>
+                  </div>
+                  <div class="submission-stat-item">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <span class="fake-probability">{{ "%.1f"|format(submission.fake_prob * 100) }}% Fake Prob.</span>
+                  </div>
+                  <div class="submission-stat-item">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m-9 4h10a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <span class="sentiment-{{ submission.sentiment }}">{{ submission.sentiment|title }}</span>
+                  </div>
+                </div>
+                <div class="submission-actions">
+                  <button class="btn-secondary" style="font-size: 0.875rem; padding: 0.5rem 1rem;">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    View Details
+                  </button>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="no-submissions">
+              <svg class="no-submissions-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <h3 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: #374151;">No submissions yet</h3>
+              <p style="font-size: 1rem; color: #6b7280; margin-bottom: 2rem;">You haven't submitted any news articles yet. Start by creating your first submission from the dashboard.</p>
+              <a href="{{ url_for('reporter.reporter_dashboard') }}" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.75rem; text-decoration: none;">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Submit News
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadSubmissions() {
+      const loadingState = document.getElementById('loading-state');
+      const errorMessage = document.getElementById('error-message');
+      const submissionsList = document.getElementById('submissions-list');
+      
+      // Show loading state
+      loadingState.style.display = 'block';
+      errorMessage.style.display = 'none';
+      
+      try {
+        const response = await fetch('/reporter/submissions');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          // Update stats
+          document.getElementById('total-submissions').textContent = data.submissions.length;
+          
+          const verifiedCount = data.submissions.filter(s => s.status === 'verified').length;
+          const monitoringCount = data.submissions.filter(s => s.status === 'monitoring').length;
+          
+          document.getElementById('verified-count').textContent = verifiedCount;
+          document.getElementById('monitoring-count').textContent = monitoringCount;
+          
+          // Reload page to show updated content
+          window.location.reload();
+        } else {
+          throw new Error(data.error || 'Failed to load submissions');
+        }
+      } catch (error) {
+        console.error('Error loading submissions:', error);
+        errorMessage.textContent = `Error loading submissions: ${error.message}`;
+        errorMessage.style.display = 'block';
+      } finally {
+        loadingState.style.display = 'none';
+      }
+    }
+
+    // Auto-refresh every 30 seconds
+    setInterval(() => {
+      loadSubmissions();
+    }, 30000);
+
+    // Add some animation to cards on load
+    document.addEventListener('DOMContentLoaded', function() {
+      const cards = document.querySelectorAll('.submission-card');
+      cards.forEach((card, index) => {
+        setTimeout(() => {
+          card.style.opacity = '0';
+          card.style.transform = 'translateY(20px)';
+          card.style.transition = 'opacity 0.3s, transform 0.3s';
+          
+          setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+          }, 100);
+        }, index * 100);
+      });
+    });
+
+    // Add spin animation CSS
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>

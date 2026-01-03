@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>PSLVNews - India's #1 Hyperlocal Short News App</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+
+</head>
+<body>
+  <div id="dashboard-page" class="dashboard-page">
+    <!-- Background Effects -->
+    <div class="dashboard-bg-effect-1"></div>
+    <div class="dashboard-bg-effect-2"></div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <a href="{{ url_for("news_analysis")}}"
+            role="button"
+            style="
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              padding: 10px 14px;
+              border-radius: 8px;
+              background: #f5c518;
+              color: #111;
+              font-weight: 600;
+              font-size: 14px;
+              text-decoration: none;
+              cursor: pointer;
+              transition: background 0.2s ease, transform 0.15s ease;
+            "
+            onmouseover="this.style.background='#e0b616'"
+            onmouseout="this.style.background='#f5c518'"
+            onmousedown="this.style.transform='scale(0.98)'"
+            onmouseup="this.style.transform='scale(1)'"
+          >
+            <!-- <svg
+              style="width:18px;height:18px;"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            > -->
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+            </svg>
+            NEWS Analysis
+          </a>
+          <br>
+          <a href="{{ url_for("user_for_you")}}"
+            role="button"
+            style="
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              padding: 10px 14px;
+              border-radius: 8px;
+              background: #f5c518;
+              color: #111;
+              font-weight: 600;
+              font-size: 14px;
+              text-decoration: none;
+              cursor: pointer;
+              transition: background 0.2s ease, transform 0.15s ease;
+            "
+            onmouseover="this.style.background='#e0b616'"
+            onmouseout="this.style.background='#f5c518'"
+            onmousedown="this.style.transform='scale(0.98)'"
+            onmouseup="this.style.transform='scale(1)'"
+          >
+            <!-- <svg
+              style="width:18px;height:18px;"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            > -->
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+            </svg>
+            For YOU
+          </a>
+
+        </div>
+        <div class="sidebar-content">
+          <div class="sidebar-section">
+            <h3 class="sidebar-section-title">News Categories</h3>
+          </div>
+          <div class="sidebar-nav-item">
+            <a href="/user/dashboard/politics" class="sidebar-nav-button">
+              <svg class="sidebar-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+              </svg>
+              Politics
+            </a>
+          </div>
+          <div class="sidebar-nav-item">
+            <a href="/user/dashboard/technology" class="sidebar-nav-button">
+              <svg class="sidebar-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+              </svg>
+              Technology
+            </a>
+          </div>
+          <div class="sidebar-nav-item">
+            <a href="/user/dashboard/sports" class="sidebar-nav-button">
+              <svg class="sidebar-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+              </svg>
+              Sports
+            </a>
+          </div>
+          <div class="sidebar-nav-item">
+            <a href="/user/dashboard/entertainment" class="sidebar-nav-button">
+              <svg class="sidebar-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-9 0V1m10 3V1m0 3l1 1v16a2 2 0 01-2 2H6a2 2 0 01-2-2V5l1-1z"></path>
+              </svg>
+              Entertainment
+            </a>
+          </div>
+          <div class="sidebar-nav-item">
+            <a href="/user/dashboard/business" class="sidebar-nav-button">
+              <svg class="sidebar-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+              </svg>
+              Business
+            </a>
+          </div>
+          <div class="sidebar-nav-item">
+            <a href="/user/dashboard/health" class="sidebar-nav-button">
+              <svg class="sidebar-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+              </svg>
+              Health
+            </a>
+          </div>
+          <div class="sidebar-nav-item">
+            <a href="/user/dashboard/science" class="sidebar-nav-button">
+              <svg class="sidebar-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+              </svg>
+              Science
+            </a>
+          </div>
+          <div class="sidebar-nav-item">
+            <a href="/user/dashboard/world" class="sidebar-nav-button">
+              <svg class="sidebar-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064"></path>
+              </svg>
+              World
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Header -->
+        <div class="dashboard-header">
+          <div class="header-content">
+            <button class="menu-toggle">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+              </svg>
+            </button>
+            <form class="search-form" action="/user/dashboard/search" method="GET">
+              <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              <input name="q" placeholder="Search news..." class="search-input" value="{{ search_query if search_query else '' }}" />
+              <div class="search-tags-container"></div>
+            </form>
+            <div class="header-actions">
+              <button class="user-button">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content-area">
+          <div class="content-grid">
+            <!-- Main News -->
+            <div class="main-news-section">
+              <h1 class="page-title">For YOU</h1>
+              
+              <!-- Search Results Header (shown only for search results) -->
+              {% if search_results %}
+              <div class="search-results-header">
+                <div class="search-query-display">
+                  {% if search_query %}
+                    Search results for: <span class="query-text">{{ search_query }}</span>
+                    {% if search_truncated %}
+                    <small style="font-size: 0.875rem; color: #9CA3AF;"> (search term truncated to 100 characters)</small>
+                    {% endif %}
+                  {% else %}
+                    Search Results
+                  {% endif %}
+                </div>
+                <div class="search-results-count">
+                  {{ news_count }} {{ "result" if news_count == 1 else "results" }} found
+                </div>
+              </div>
+              {% endif %}
+
+              <!-- Error Display -->
+              {% if error %}
+              <div class="no-search-results">
+                <svg class="no-search-results-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+                <h3 class="no-search-results-title">Search Error</h3>
+                <p class="no-search-results-message">{{ error }}</p>
+                <a href="/user/dashboard/breakingnews" class="clear-search-btn">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                  Back to Dashboard
+                </a>
+              </div>
+              {% endif %}
+              
+              <!-- News Content -->
+              {% if news_list and news_list|length > 0 and not error %}
+              <div class="news-card">
+                <div class="news-card-content" id="news-content">
+                  <button class="news-navigation prev" onclick="navigateNews('prev')">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                  </button>
+
+                  <button class="news-navigation next" onclick="navigateNews('next')">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </button>
+
+                  <!-- Dynamic News Content -->
+                  {% for news in news_list %}
+                  <div class="news-article" data-news-id="{{ news._id }}" style="{% if loop.index > 1 %}display: none;{% endif %}">
+                    {% if news.image_url %}
+    <img src="{{ news.image_url }}" alt="{{ news.title }}" class="news-image">
+{% else %}
+    {% if news.category == "business" %}
+        <img src="{{ url_for('static', filename='images/buissness.jpeg') }}" class="news-image">
+    {% elif news.category == "health" %}
+        <img src="{{ url_for('static', filename='images/health.jpeg') }}" class="news-image">
+    {% elif news.category == "science" %}
+        <img src="{{ url_for('static', filename='images/science.jpeg') }}" class="news-image">
+    {% elif news.category == "technology" %}
+        <img src="{{ url_for('static', filename='images/technology.jpg') }}" class="news-image">
+    {% elif news.category == "entertainment" %}
+        <img src="{{ url_for('static', filename='images/entertainment.jpeg') }}" class="news-image">
+    {% elif news.category == "politics" %}
+        <img src="{{ url_for('static', filename='images/politics.jpg') }}" class="news-image">
+    {% elif news.category == "sports" %}
+        <img src="{{ url_for('static', filename='images/sports.jpg') }}" class="news-image">
+    {% elif news.category == "world" %}
+        <img src="{{ url_for('static', filename='images/world.jpeg') }}" class="news-image">
+    {% else %}
+        <img src="{{ url_for('static', filename='images/world.jpeg') }}" class="news-image">
+    {% endif %}
+{% endif %}
+
+                    
+                    <h2 class="news-title">
+                      {% if search_query %}
+                        {{ news.title|replace(search_query, '<span class="highlighted-text">' + search_query + '</span>')|safe }}
+                      {% else %}
+                        {{ news.title }}
+                      {% endif %}
+                    </h2>
+                    <div class="news-content">
+                      {% if search_query and news.full_text %}
+                        {{ news.full_text[:300] + '...'|replace(search_query, '<span class="highlighted-text">' + search_query + '</span>')|safe }}
+                      {% elif news.full_text %}
+                        {{ news.full_text[:300] }}{% if news.full_text|length > 300 %}...{% endif %}
+                      {% elif news.content %}
+                        {{ news.content[:300] }}{% if news.content|length > 300 %}...{% endif %}
+                      {% endif %}
+                    </div>
+                    
+                    <div class="news-meta">
+                      <span class="news-date">{{ news.created_at.strftime('%B %d, %Y') if news.created_at else 'Recent' }}</span>
+                      <span class="news-category">
+                        {% if search_query and news.category %}
+                          {{ news.category|replace(search_query, '<span class="highlighted-text">' + search_query + '</span>')|safe }}
+                        {% else %}
+                          {{ news.category|title if news.category else 'General' }}
+                        {% endif %}
+                      </span>
+                    </div>
+
+                    <div class="news-footer">
+                      <div class="news-actions">
+                        <button class="action-button" onclick="likeNews('{{ news._id }}')">
+                          <svg class="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                          </svg>
+                          <span class="like-count">{{ news.likes or 0 }}</span>
+                        </button>
+                        <button class="action-button" onclick="saveNews('{{ news._id }}')">
+                          <svg class="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                          </svg>
+                          Save
+                        </button>
+                        <button class="action-button" onclick="shareNews('{{ news._id }}')">
+                          <svg class="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                          </svg>
+                          Share
+                        </button>
+                      </div>
+
+                      <div class="news-stats">
+                        <div class="stat-item">
+                          <div class="stat-value green">{{ (news.credibility) * 100 }}%</div>
+                          <div class="stat-label">Credibility</div>
+                        </div>
+                        <div class="stat-item">
+                          <div class="stat-value yellow">{{ (news.fake_prob) }}%</div>
+                          <div class="stat-label">Fake Prob.</div>
+                        </div>
+                        <div class="stat-item">
+                          <div class="stat-value blue">{{ news.sentiment_score }}</div>
+                          <div class="stat-label">Sentiment Score</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+
+                  <!-- Search Performance Indicator -->
+                  {% if search_results %}
+                  <div class="search-performance">
+                    <div class="search-time">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      <span>Search completed</span>
+                    </div>
+                    <div class="search-stats">
+                      <div class="search-stat">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span>{{ news_count }} articles</span>
+                      </div>
+                    </div>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+              
+              {% elif not error %}
+              <!-- No Results Found -->
+              <div class="no-search-results">
+                <svg class="no-search-results-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <h3 class="no-search-results-title">
+                  {% if search_query %}
+                    No results found for "{{ search_query }}"
+                  {% else %}
+                    No search results
+                  {% endif %}
+                </h3>
+                <p class="no-search-results-message">
+                  {% if search_query %}
+                    We couldn't find any news articles matching your search. Try using different keywords or check your spelling.
+                  {% else %}
+                    Please enter a search term to find news articles.
+                  {% endif %}
+                </p>
+                
+                <!-- Search Suggestions -->
+                <div class="search-suggestions">
+                  <a href="/user/dashboard/politics" class="search-suggestion">Politics</a>
+                  <a href="/user/dashboard/technology" class="search-suggestion">Technology</a>
+                  <a href="/user/dashboard/sports" class="search-suggestion">Sports</a>
+                  <a href="/user/dashboard/business" class="search-suggestion">Business</a>
+                  <a href="/user/dashboard/health" class="search-suggestion">Health</a>
+                </div>
+
+                <a href="/user/dashboard/breakingnews" class="clear-search-btn">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                  </svg>
+                  Back to Dashboard
+                </a>
+              </div>
+              
+              {% else %}
+              <!-- No News Available (for categories) -->
+              <div class="no-news-message">
+                <h3>No news available for {{ selected_category|title if selected_category else "this category" }}</h3>
+                <p>Please try selecting a different category from the sidebar.</p>
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Breaking News -->
+            <div class="breaking-news-section">
+              <h3 class="breaking-news-title">{{ selected_category|title if selected_category else "Breaking" }} News</h3>
+              <div class="breaking-news-list">
+                {% if news_list and news_list|length > 0 %}
+                  {% for news in news_list %}
+                  <div class="breaking-news-item" onclick="navigateToNews({{ loop.index0 }})" style="cursor: pointer;">
+                    {% if news.image_url %}
+    <img src="{{ news.image_url }}" alt="{{ news.title }}" class="news-imagee">
+{% else %}
+    {% if news.category == "business" %}
+        <img src="{{ url_for('static', filename='images/buissness.jpeg') }}" class="news-imagee">
+    {% elif news.category == "health" %}
+        <img src="{{ url_for('static', filename='images/health.jpeg') }}" class="news-imagee">
+    {% elif news.category == "science" %}
+        <img src="{{ url_for('static', filename='images/science.jpeg') }}" class="news-imagee">
+    {% elif news.category == "technology" %}
+        <img src="{{ url_for('static', filename='images/technology.jpg') }}" class="news-imagee">
+    {% elif news.category == "entertainment" %}
+        <img src="{{ url_for('static', filename='images/entertainment.jpeg') }}" class="news-imagee">
+    {% elif news.category == "politics" %}
+        <img src="{{ url_for('static', filename='images/politics.jpg') }}" class="news-imagee">
+    {% elif news.category == "sports" %}
+        <img src="{{ url_for('static', filename='images/sports.jpg') }}" class="news-imagee">
+    {% elif news.category == "world" %}
+        <img src="{{ url_for('static', filename='images/world.jpeg') }}" class="news-imagee">
+    {% else %}
+        <img src="{{ url_for('static', filename='images/world.jpeg') }}" class="news-imagee">
+    {% endif %}
+{% endif %}
+
+                    <p class="breaking-news-text">{{ news.title[:50] }}{% if news.title|length > 50 %}...{% endif %}</p>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="breaking-news-item">
+                    <img src="https://images.unsplash.com/photo-1569163139394-de4e4f43e4e3?w=100&h=60&fit=crop" alt="News article" class="breaking-news-image" />
+                    <p class="breaking-news-text">No breaking news available</p>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+  <!-- Chatbot -->
+  <!-- <button class="chatbot-button">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+    </svg>
+  </button> -->
+</div>
+
+<!-- Login Modal -->
+
+
+<!-- Register Modal -->
+
+  </div>
+</body>
+</html>

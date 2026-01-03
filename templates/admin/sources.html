@@ -1,0 +1,312 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Sources Management - Admin Panel{% endblock %}
+{% block page_title %}Sources Management{% endblock %}
+
+{% block breadcrumb %}
+<a href="{{ url_for('admin.admin_dashboard') }}">Admin</a>
+<span class="separator">/</span>
+<span>Sources</span>
+{% endblock %}
+
+{% block content %}
+<!-- Error Display -->
+{% if error %}
+<div class="alert alert-error">
+    <i class="fas fa-exclamation-triangle"></i>
+    <span>{{ error }}</span>
+    <button class="alert-close" onclick="this.parentElement.style.display='none'">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+{% endif %}
+
+<!-- Sources Management Header -->
+<div class="page-header">
+    <div class="header-content">
+        <h1>News Sources Management</h1>
+        <p>Monitor and analyze news sources performance and credibility</p>
+    </div>
+    <div class="header-actions">
+        <button class="btn btn-secondary" onclick="exportSourcesData()">
+            <i class="fas fa-download"></i>
+            Export Sources
+        </button>
+        <button class="btn btn-primary" onclick="refreshSources()">
+            <i class="fas fa-sync-alt"></i>
+            Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Sources Statistics -->
+<div class="sources-stats">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-globe"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ sources_data|length if sources_data else 0 }}</h3>
+                <p>Total Sources</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-newspaper"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ (sources_data|sum(attribute='article_count')) if sources_data else 0 }}</h3>
+                <p>Total Articles</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ (sources_data|selectattr('avg_credibility')|map(attribute='avg_credibility')|list|length) if sources_data else 0 }}</h3>
+                <p>Credible Sources</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ (sources_data|selectattr('fake_news_count')|map(attribute='fake_news_count')|sum) if sources_data else 0 }}</h3>
+                <p>Total Fake News</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Sources -->
+<div class="top-sources-section">
+    <h2>Top Performing Sources</h2>
+    <div class="sources-grid">
+        {% if sources_data and sources_data|length > 0 %}
+            {% for source in sources_data[:6] %}
+            <div class="source-card">
+                <div class="source-header">
+                    <h3>{{ source._id or 'Unknown Source' }}</h3>
+                    <div class="source-rating">
+                        {% if source.avg_credibility %}
+                            <span class="rating-value">{{ "%.1f"|format(source.avg_credibility * 100) }}%</span>
+                            <span class="rating-label">Credibility</span>
+                        {% else %}
+                            <span class="rating-value">N/A</span>
+                            <span class="rating-label">No Data</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="source-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Articles</span>
+                        <span class="stat-value">{{ source.article_count or 0 }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Fake News</span>
+                        <span class="stat-value fake-news">{{ source.fake_news_count or 0 }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Avg Sentiment</span>
+                        <span class="stat-value">{{ "%.2f"|format(source.avg_sentiment or 0) }}</span>
+                    </div>
+                </div>
+                
+                <div class="source-progress">
+                    <div class="progress-label">
+                        <span>Credibility Score</span>
+                        <span>{{ "%.1f"|format((source.avg_credibility * 100) if source.avg_credibility else 0) }}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ (source.avg_credibility * 100) if source.avg_credibility else 0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-data">
+                <i class="fas fa-globe"></i>
+                <h3>No Sources Data Available</h3>
+                <p>No news sources found in the database.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Sources Table -->
+<div class="table-section">
+    <div class="table-header">
+        <h2>All News Sources</h2>
+        <div class="table-actions">
+            <button class="btn btn-sm btn-outline" onclick="refreshTable()">
+                <i class="fas fa-sync-alt"></i>
+                Refresh
+            </button>
+        </div>
+    </div>
+    
+    <div class="table-container">
+        <table class="sources-table">
+            <thead>
+                <tr>
+                    <th>Source Name</th>
+                    <th>Articles Count</th>
+                    <th>Avg Credibility</th>
+                    <th>Fake News Count</th>
+                    <th>Avg Sentiment</th>
+                    <th>Reliability Score</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="sources-table-body">
+                {% if sources_data and sources_data|length > 0 %}
+                    {% for source in sources_data %}
+                    <tr>
+                        <td>
+                            <div class="source-name">
+                                <strong>{{ source._id or 'Unknown Source' }}</strong>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="count-badge">{{ source.article_count or 0 }}</span>
+                        </td>
+                        <td>
+                            <div class="credibility-cell">
+                                <div class="credibility-bar">
+                                    <div class="credibility-fill" style="width: {{ (source.avg_credibility * 100) if source.avg_credibility else 0 }}%"></div>
+                                </div>
+                                <span class="credibility-text">{{ "%.1f"|format((source.avg_credibility * 100) if source.avg_credibility else 0) }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="fake-news-badge {{ 'high' if source.fake_news_count and source.fake_news_count > 10 else 'low' if source.fake_news_count and source.fake_news_count < 5 else 'medium' }}">
+                                {{ source.fake_news_count or 0 }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="sentiment-value 
+                                {% if source.avg_sentiment and source.avg_sentiment > 0.1 %}positive
+                                {% elif source.avg_sentiment and source.avg_sentiment < -0.1 %}negative
+                                {% else %}neutral{% endif %}">
+                                {{ "%.2f"|format(source.avg_sentiment or 0) }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="reliability-score">
+                                {% if source.avg_credibility and source.fake_news_count is defined %}
+                                    {% set reliability = (source.avg_credibility * 100) - (source.fake_news_count * 2) %}
+                                    <span class="score-value {{ 'high' if reliability > 80 else 'medium' if reliability > 60 else 'low' }}">
+                                        {{ "%.1f"|format(reliability) }}
+                                    </span>
+                                {% else %}
+                                    <span class="score-value neutral">N/A</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-outline" onclick="viewSource('{{ source._id }}')" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline" onclick="analyzeSource('{{ source._id }}')" title="Analyze">
+                                    <i class="fas fa-chart-line"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline" onclick="blockSource('{{ source._id }}')" title="Block Source">
+                                    <i class="fas fa-ban"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center">
+                            <div class="no-data">
+                                <i class="fas fa-globe"></i>
+                                <h3>No Sources Found</h3>
+                                <p>No news sources available in the database.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Initialize sources management page
+document.addEventListener('DOMContentLoaded', function() {
+    initializeSourcesManagement();
+});
+
+function initializeSourcesManagement() {
+    // Auto-refresh every 10 minutes
+    setInterval(() => {
+        if (document.visibilityState === 'visible') {
+            refreshSources();
+        }
+    }, 600000);
+}
+
+function refreshSources() {
+    if (typeof window.showLoading === 'function') {
+        window.showLoading();
+    }
+    
+    // Reload the page to get fresh data
+    setTimeout(() => {
+        location.reload();
+    }, 1000);
+}
+
+function refreshTable() {
+    refreshSources();
+}
+
+function exportSourcesData() {
+    if (typeof showNotification === 'function') {
+        showNotification('Export functionality coming soon', 'info');
+    }
+}
+
+function viewSource(sourceId) {
+    if (typeof showNotification === 'function') {
+        showNotification('Source details functionality coming soon', 'info');
+    }
+}
+
+function analyzeSource(sourceId) {
+    if (typeof showNotification === 'function') {
+        showNotification('Source analysis functionality coming soon', 'info');
+    }
+}
+
+function blockSource(sourceId) {
+    if (!confirm('Are you sure you want to block this news source? This action can be reversed.')) {
+        return;
+    }
+    
+    if (typeof showNotification === 'function') {
+        showNotification('Block source functionality coming soon', 'info');
+    }
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}

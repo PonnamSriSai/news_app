@@ -1,0 +1,521 @@
+{% extends "admin/base.html" %}
+
+{% block title %}News Management - Admin Panel{% endblock %}
+{% block page_title %}News Management{% endblock %}
+
+{% block breadcrumb %}
+<a href="{{ url_for('admin.admin_dashboard') }}">Admin</a>
+<span class="separator">/</span>
+<span>News</span>
+{% endblock %}
+
+{% block content %}
+<!-- Error Display -->
+{% if error %}
+<div class="alert alert-error">
+    <i class="fas fa-exclamation-triangle"></i>
+    <span>{{ error }}</span>
+    <button class="alert-close" onclick="this.parentElement.style.display='none'">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+{% endif %}
+
+<!-- News Management Header -->
+<div class="page-header">
+    <div class="header-content">
+        <h1>News Management</h1>
+        <p>Manage and analyze news articles in the system</p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('admin.admin_news_visualization') }}" class="btn btn-secondary">
+            <i class="fas fa-chart-bar"></i>
+            View Analytics
+        </a>
+        <button class="btn btn-primary" onclick="exportNewsData()">
+            <i class="fas fa-download"></i>
+            Export Data
+        </button>
+    </div>
+</div>
+
+<!-- Filters and Controls -->
+<div class="filters-section">
+    <div class="filters-grid">
+        <div class="filter-group">
+            <label for="category-filter">Category</label>
+            <select id="category-filter" onchange="filterNews()">
+                <option value="all" {% if current_category == 'all' %}selected{% endif %}>All Categories</option>
+                {% for category in categories %}
+                <option value="{{ category }}" {% if current_category == category %}selected{% endif %}>{{ category|title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="search-input">Search</label>
+            <div class="search-input-group">
+                <input type="text" id="search-input" placeholder="Search news..." value="{{ current_search }}" onkeyup="handleSearch(event)">
+                <button type="button" class="search-btn" onclick="performSearch()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="filter-group">
+            <label for="limit-select">Items per page</label>
+            <select id="limit-select" onchange="changeLimit()">
+                <option value="20" {% if news_data.total_count <= 20 %}selected{% endif %}>20</option>
+                <option value="50" {% if news_data.total_count > 20 and news_data.total_count <= 50 %}selected{% endif %}>50</option>
+                <option value="100" {% if news_data.total_count > 50 %}selected{% endif %}>100</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <button class="btn btn-outline" onclick="clearFilters()">
+                <i class="fas fa-times"></i>
+                Clear Filters
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- News Statistics -->
+<div class="news-stats">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-newspaper"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ news_data.total_count or 0 }}</h3>
+                <p>Total Articles</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-eye"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ (news_data.articles|length) if news_data.articles else 0 }}</h3>
+                <p>Showing on Page</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-calendar"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ news_data.current_page or 1 }}</h3>
+                <p>Current Page</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-pages"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ news_data.total_pages or 0 }}</h3>
+                <p>Total Pages</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- News Table -->
+<div class="table-section">
+    <div class="table-header">
+        <h2>News Articles</h2>
+        <div class="table-actions">
+            <button class="btn btn-sm btn-outline" onclick="refreshTable()">
+                <i class="fas fa-sync-alt"></i>
+                Refresh
+            </button>
+        </div>
+    </div>
+    
+    <div class="table-container">
+        <table class="news-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Source</th>
+                    <th>Credibility Score</th>
+                    <th>Sentiment</th>
+                    <th>Published Date</th>
+                    <th>Evidences</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="news-table-body">
+                {% if news_data.articles and news_data.articles|length > 0 %}
+                    {% for news in news_data.articles %}
+                    <tr>
+                        <td>
+                            <div class="news-title-cell">
+                                <strong>{{ news.title[:80] }}{% if news.title|length > 80 %}...{% endif %}</strong>
+                                {% if news.summary %}
+                                <br><small class="text-muted">{{ news.summary[:100] }}{% if news.summary|length > 100 %}...{% endif %}</small>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ 'danger' if news.category == 'politics' else 'info' if news.category == 'technology' else 'success' if news.category == 'sports' else 'warning' if news.category == 'business' else 'secondary' }}">
+                                {{ news.category|title if news.category else 'General' }}
+                            </span>
+                        </td>
+                        <td>{{ news.source or 'Unknown' }}</td>
+                        <td>
+                            <div class="credibility-score">
+                                <div class="score-bar">
+                                    <div class="score-fill" style="width: {{ (news.credibility * 100) if news.credibility else 0 }}%"></div>
+                                </div>
+                                <span class="score-text">{{ "%.1f"|format((news.credibility * 100) if news.credibility else 0) }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="sentiment-score 
+                                {% if news.sentiment_score and news.sentiment_score > 0.1 %}positive
+                                {% elif news.sentiment_score and news.sentiment_score < -0.1 %}negative
+                                {% else %}neutral{% endif %}">
+                                {{ "%.2f"|format(news.sentiment_score if news.sentiment_score else 0) }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="date-cell">
+                                {% if news.publishedAt %}
+                                    {{ news.publishedAt.strftime('%b %d, %Y') }}
+                                    <br><small>{{ news.publishedAt.strftime('%I:%M %p') }}</small>
+                                {% else %}
+                                    Unknown
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {{ news.evidence_sources|length}}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{{ url_for('admin.admin_news_details', news_id=news._id) }}"
+                                class="btn btn-sm btn-outline"
+                                title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+
+                                <a href="#"
+                                class="btn btn-sm btn-outline"
+                                title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+
+                                <a href="#"
+                                class="btn btn-sm btn-outline"
+                                title="Duplicate">
+                                    <i class="fas fa-copy"></i>
+                                </a>
+                            </div>
+
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center">
+                            <div class="no-data">
+                                <i class="fas fa-newspaper"></i>
+                                <h3>No News Articles Found</h3>
+                                <p>No articles match your current filters. Try adjusting your search criteria.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if news_data.total_pages > 1 %}
+    <div class="pagination-container" id="pagination-container">
+        <div class="pagination">
+            <button class="btn btn-sm" {% if not news_data.has_prev %}disabled{% endif %} onclick="loadNewsData({{ news_data.current_page - 1 }})">
+                <i class="fas fa-chevron-left"></i>
+                Previous
+            </button>
+            
+            <div class="pagination-info">
+                <span>Page {{ news_data.current_page }} of {{ news_data.total_pages }}</span>
+                <span class="separator">|</span>
+                <span>{{ news_data.total_count }} total articles</span>
+            </div>
+            
+            <button class="btn btn-sm" {% if not news_data.has_next %}disabled{% endif %} onclick="loadNewsData({{ news_data.current_page + 1 }})">
+                Next
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Initialize news management page
+document.addEventListener('DOMContentLoaded', function() {
+    initializeNewsManagement();
+});
+
+function initializeNewsManagement() {
+    // Set up event listeners
+    document.getElementById('search-input')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+    
+    // Auto-refresh every 5 minutes
+    setInterval(() => {
+        if (document.visibilityState === 'visible') {
+            refreshTable();
+        }
+    }, 300000);
+}
+
+function filterNews() {
+    const category = document.getElementById('category-filter').value;
+    const search = document.getElementById('search-input').value;
+    const limit = document.getElementById('limit-select').value;
+    
+    loadNewsData(1, limit, category, search);
+}
+
+function performSearch() {
+    const category = document.getElementById('category-filter').value;
+    const search = document.getElementById('search-input').value;
+    const limit = document.getElementById('limit-select').value;
+    
+    loadNewsData(1, limit, category, search);
+}
+
+function handleSearch(event) {
+    if (event.key === 'Enter') {
+        performSearch();
+    }
+}
+
+function changeLimit() {
+    filterNews();
+}
+
+function clearFilters() {
+    document.getElementById('category-filter').value = 'all';
+    document.getElementById('search-input').value = '';
+    document.getElementById('limit-select').value = '20';
+    
+    loadNewsData(1, 20, 'all', '');
+}
+
+function refreshTable() {
+    const currentFilters = {
+        category: document.getElementById('category-filter').value,
+        search: document.getElementById('search-input').value,
+        limit: document.getElementById('limit-select').value,
+        page: 1
+    };
+    
+    loadNewsData(currentFilters.page, currentFilters.limit, currentFilters.category, currentFilters.search);
+}
+
+function loadNewsData(page, limit, category, search) {
+    if (typeof window.isLoading !== 'undefined' && window.isLoading) return;
+    
+    if (typeof window.showLoading === 'function') {
+        window.showLoading();
+    }
+    
+    var params = new URLSearchParams({
+        page: page,
+        limit: limit,
+        category: category,
+        search: search
+    });
+    
+    fetch('/admin/news/data?' + params.toString())
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            updateNewsTable(data);
+            updatePagination(data);
+            
+            // Update current page
+            if (typeof currentPage !== 'undefined') {
+                currentPage = page;
+            }
+        })
+        .catch(function(error) {
+            console.error('Failed to load news data:', error);
+            if (typeof showNotification === 'function') {
+                showNotification('Failed to load news data', 'error');
+            }
+        })
+        .finally(function() {
+            if (typeof window.hideLoading === 'function') {
+                window.hideLoading();
+            }
+        });
+}
+
+function updateNewsTable(data) {
+    const tableBody = document.getElementById('news-table-body');
+    if (!tableBody) return;
+    
+    if (!data.articles || data.articles.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center">
+                    <div class="no-data">
+                        <i class="fas fa-newspaper"></i>
+                        <h3>No News Articles Found</h3>
+                        <p>No articles match your current filters.</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tableBody.innerHTML = data.articles.map(article => {
+        const title = escapeHtml(article.title || 'Untitled');
+        const summary = article.summary ? '<br><small class="text-muted">' + escapeHtml(article.summary.substring(0, 100)) + (article.summary.length > 100 ? '...' : '') + '</small>' : '';
+        const category = escapeHtml(article.category || 'General');
+        const source = escapeHtml(article.source || 'Unknown');
+        const credibility = (article.credibility * 100 || 0).toFixed(1);
+        const sentiment = (article.sentiment_score || 0).toFixed(2);
+        const sentimentClass = getSentimentClass(article.sentiment_score);
+        const categoryColor = getCategoryColor(article.category);
+        const publishedDate = article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() + '<br><small>' + new Date(article.publishedAt).toLocaleTimeString() + '</small>' : 'Unknown';
+        const scoreWidth = (article.credibility * 100 || 0) + '%';
+        
+        return `<tr>
+            <td>
+                <div class="news-title-cell">
+                    <strong>${title}</strong>
+                    ${summary}
+                </div>
+            </td>
+            <td>
+                <span class="badge badge-${categoryColor}">
+                    ${category}
+                </span>
+            </td>
+            <td>${source}</td>
+            <td>
+                <div class="credibility-score">
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: ${scoreWidth}"></div>
+                    </div>
+                    <span class="score-text">${credibility}%</span>
+                </div>
+            </td>
+            <td>
+                <span class="sentiment-score ${sentimentClass}">
+                    ${sentiment}
+                </span>
+            </td>
+            <td>
+                <div class="date-cell">
+                    ${publishedDate}
+                </div>
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn btn-sm btn-outline" onclick="viewNews('${article._id}')" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="editNews('${article._id}')" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="duplicateNews('${article._id}')" title="Duplicate">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function updatePagination(data) {
+    const paginationContainer = document.getElementById('pagination-container');
+    if (!paginationContainer || data.total_pages <= 1) {
+        if (paginationContainer) paginationContainer.style.display = 'none';
+        return;
+    }
+    
+    paginationContainer.style.display = 'block';
+    
+    const pagination = paginationContainer.querySelector('.pagination');
+    const prevBtn = pagination.querySelector('button:first-child');
+    const nextBtn = pagination.querySelector('button:last-child');
+    const info = pagination.querySelector('.pagination-info');
+    
+    // Update button states
+    prevBtn.disabled = !data.has_prev;
+    nextBtn.disabled = !data.has_next;
+    
+    // Update info
+    info.innerHTML = `
+        <span>Page ${data.current_page} of ${data.total_pages}</span>
+        <span class="separator">|</span>
+        <span>${data.total_count} total articles</span>
+    `;
+}
+
+function exportNewsData() {
+    showNotification('Export functionality coming soon', 'info');
+}
+
+function viewNews(newsId) {
+    // Open the existing news details modal
+    openNewsModal(newsId);
+}
+
+function editNews(newsId) {
+    showNotification('Edit functionality coming soon', 'info');
+}
+
+function duplicateNews(newsId) {
+    showNotification('Duplicate functionality coming soon', 'info');
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function getCategoryColor(category) {
+    const colors = {
+        'politics': 'danger',
+        'technology': 'info',
+        'sports': 'success',
+        'business': 'warning',
+        'health': 'primary',
+        'science': 'secondary'
+    };
+    return colors[category?.toLowerCase()] || 'secondary';
+}
+
+function getSentimentClass(score) {
+    if (score > 0.1) return 'positive';
+    if (score < -0.1) return 'negative';
+    return 'neutral';
+}
+</script>
+{% endblock %}

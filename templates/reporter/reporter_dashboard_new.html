@@ -1,0 +1,586 @@
+{% extends "reporter/base.html" %}
+
+{% block title %}Submit News - PSLVNews Reporter{% endblock %}
+
+{% block page_title %}Submit News Story{% endblock %}
+
+{% block breadcrumb %}
+<a href="{{ url_for('reporter.reporter_dashboard') }}">Reporter</a>
+<span class="separator">/</span>
+<span>Submit News</span>
+{% endblock %}
+
+{% block content %}
+<div class="reporter-content-wrapper">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <div>
+                <h1>📝 Submit News Story</h1>
+                <p>Share news stories with media files for verification and publication</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="clearForm()">
+                    <i class="fas fa-eraser"></i>
+                    Clear Form
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    <div id="alert-success" class="alert alert-success"></div>
+    <div id="alert-error" class="alert alert-error"></div>
+    
+    <!-- Progress Bar -->
+    <div id="progress-container" class="progress-bar" style="display: none;">
+        <div id="progress-fill" class="progress-fill"></div>
+    </div>
+
+    <!-- Main Form -->
+    <div class="form-container">
+        <form id="news-form" enctype="multipart/form-data">
+            <!-- News Content Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <h2>
+                        <i class="fas fa-newspaper"></i>
+                        News Content
+                    </h2>
+                    <p>Provide the complete news story details</p>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="full_text">Full Text *</label>
+                        <textarea 
+                            id="full_text" 
+                            name="full_text" 
+                            class="form-control" 
+                            placeholder="Enter the complete news story here..."
+                            required
+                            maxlength="10000"
+                        ></textarea>
+                        <div class="character-count">
+                            <span id="char-count">0</span>/10000 characters
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="source">Source *</label>
+                        <input 
+                            type="text" 
+                            id="source" 
+                            name="source" 
+                            class="form-control" 
+                            placeholder="e.g., Local WhatsApp forward, Eye witness, etc."
+                            required
+                            maxlength="200"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Media Upload Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <h2>
+                        <i class="fas fa-photo-video"></i>
+                        Media Files
+                    </h2>
+                    <p>Upload supporting images and videos (optional)</p>
+                </div>
+                
+                <!-- Image Upload -->
+                <div class="upload-section">
+                    <label class="upload-label">
+                        <i class="fas fa-images"></i>
+                        Images
+                        <span class="upload-limit">(Max 10 files, 10MB each)</span>
+                    </label>
+                    <div class="upload-area" id="image-upload-area">
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <div class="upload-text">Drag and drop images here or click to browse</div>
+                            <div class="upload-hint">Supports: JPG, JPEG, PNG, GIF, WebP</div>
+                        </div>
+                        <input type="file" id="image-input" name="image_files" multiple accept="image/*" style="display: none;" />
+                    </div>
+                    <div id="uploaded-images" class="uploaded-files-grid"></div>
+                </div>
+                
+                <!-- Video Upload -->
+                <div class="upload-section">
+                    <label class="upload-label">
+                        <i class="fas fa-video"></i>
+                        Videos
+                        <span class="upload-limit">(Max 5 files, 100MB each)</span>
+                    </label>
+                    <div class="upload-area" id="video-upload-area">
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <div class="upload-text">Drag and drop videos here or click to browse</div>
+                            <div class="upload-hint">Supports: MP4, MOV, AVI, MKV, WebM</div>
+                        </div>
+                        <input type="file" id="video-input" name="video_files" multiple accept="video/*" style="display: none;" />
+                    </div>
+                    <div id="uploaded-videos" class="uploaded-files-grid"></div>
+                </div>
+            </div>
+
+            <!-- Location Information Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <h2>
+                        <i class="fas fa-map-marker-alt"></i>
+                        Location Information
+                    </h2>
+                    <p>Specify where the news event occurred</p>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="district">District *</label>
+                        <input 
+                            type="text" 
+                            id="district" 
+                            name="district" 
+                            class="form-control" 
+                            placeholder="Enter district name"
+                            required
+                            maxlength="100"
+                        />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="state">State *</label>
+                        <input 
+                            type="text" 
+                            id="state" 
+                            name="state" 
+                            class="form-control" 
+                            placeholder="Enter state name"
+                            required
+                            maxlength="100"
+                        />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="country">Country *</label>
+                        <input 
+                            type="text" 
+                            id="country" 
+                            name="country" 
+                            class="form-control" 
+                            placeholder="Enter country name"
+                            value="India"
+                            required
+                            maxlength="100"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Submissions Sidebar -->
+            <!-- <div class="recent-submissions-sidebar">
+                <div class="sidebar-card">
+                    <div class="sidebar-card-header">
+                        <h3>
+                            <i class="fas fa-history"></i>
+                            Recent Submissions
+                        </h3>
+                    </div>
+                    <div class="sidebar-card-content">
+                        {% if recent_submissions and recent_submissions|length > 0 %}
+                            {% for submission in recent_submissions %}
+                            <div class="recent-submission-item" data-status="{{ submission.status }}">
+                                <div class="submission-status-indicator status-{{ submission.status }}"></div>
+                                <div class="submission-content">
+                                    <div class="submission-title">{{ submission.title[:40] }}{% if submission.title|length > 40 %}...{% endif %}</div>
+                                    <div class="submission-meta">
+                                        {{ submission.created_at.strftime('%m/%d %H:%M') if submission.created_at else 'Unknown' }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            
+                            <div class="sidebar-card-footer">
+                                <a href="{{ url_for('reporter.get_submissions') }}" class="btn btn-sm btn-outline">
+                                    View All Submissions
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="no-submissions">
+                                <i class="fas fa-file-alt"></i>
+                                <p>No recent submissions</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div> -->
+
+            <!-- Submit Button -->
+            <div class="form-actions">
+                <button type="submit" id="submit-button" class="btn btn-primary btn-large">
+                    <i class="fas fa-paper-plane"></i>
+                    <span id="submit-text">Submit News Story</span>
+                    <span id="submit-spinner" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Submitting...
+                    </span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Reporter Dashboard JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle status colors for recent submissions
+        const submissionItems = document.querySelectorAll('.recent-submission-item');
+        submissionItems.forEach(item => {
+            const status = item.getAttribute('data-status');
+            if (status === 'verified') {
+                item.classList.add('status-verified');
+            } else if (status === 'monitoring') {
+                item.classList.add('status-monitoring');
+            }
+        });
+        
+        const form = document.getElementById('news-form');
+        const fullText = document.getElementById('full_text');
+        const charCount = document.getElementById('char-count');
+        const imageUploadArea = document.getElementById('image-upload-area');
+        const videoUploadArea = document.getElementById('video-upload-area');
+        const imageInput = document.getElementById('image-input');
+        const videoInput = document.getElementById('video-input');
+        const uploadedImages = document.getElementById('uploaded-images');
+        const uploadedVideos = document.getElementById('uploaded-videos');
+        const submitButton = document.getElementById('submit-button');
+        const submitText = document.getElementById('submit-text');
+        const submitSpinner = document.getElementById('submit-spinner');
+        const alertSuccess = document.getElementById('alert-success');
+        const alertError = document.getElementById('alert-error');
+        const progressContainer = document.getElementById('progress-container');
+        const progressFill = document.getElementById('progress-fill');
+        
+        let uploadedImageFiles = [];
+        let uploadedVideoFiles = [];
+        
+        // Character count for full text
+        fullText.addEventListener('input', function() {
+            const count = this.value.length;
+            charCount.textContent = count;
+            
+            const charCountElement = this.parentNode.querySelector('.character-count');
+            charCountElement.className = 'character-count';
+            
+            if (count > 9000) {
+                charCountElement.classList.add('error');
+            } else if (count > 8000) {
+                charCountElement.classList.add('warning');
+            }
+        });
+        
+        // File upload handlers
+        function setupFileUpload(uploadArea, input, filesArray, container, type) {
+            // Click to upload
+            uploadArea.addEventListener('click', () => input.click());
+            
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files, filesArray, container, type);
+            });
+            
+            // File input change
+            input.addEventListener('change', (e) => {
+                handleFiles(e.target.files, filesArray, container, type);
+            });
+        }
+        
+        function handleFiles(files, filesArray, container, type) {
+            const maxFiles = type === 'image' ? 10 : 5;
+            const maxSize = type === 'image' ? 10 * 1024 * 1024 : 100 * 1024 * 1024;
+            const allowedTypes = type === 'image' 
+                ? ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+                : ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm'];
+            
+            Array.from(files).forEach(file => {
+                if (filesArray.length >= maxFiles) {
+                    showAlert(`Maximum ${maxFiles} ${type} files allowed`, 'error');
+                    return;
+                }
+                
+                if (!allowedTypes.includes(file.type)) {
+                    showAlert(`Invalid file type: ${file.name}`, 'error');
+                    return;
+                }
+                
+                if (file.size > maxSize) {
+                    showAlert(`File too large: ${file.name} (Max: ${maxSize / (1024*1024)}MB)`, 'error');
+                    return;
+                }
+                
+                filesArray.push(file);
+                displayFile(file, container, type);
+            });
+        }
+        
+        function displayFile(file, container, type) {
+            const fileElement = document.createElement('div');
+            fileElement.className = 'uploaded-file-item';
+            
+            let mediaElement;
+            if (type === 'image') {
+                mediaElement = document.createElement('img');
+                mediaElement.src = URL.createObjectURL(file);
+            } else {
+                mediaElement = document.createElement('video');
+                mediaElement.src = URL.createObjectURL(file);
+                mediaElement.controls = true;
+            }
+            
+            const removeButton = document.createElement('button');
+            removeButton.className = 'remove-file-btn';
+            removeButton.innerHTML = '<i class="fas fa-times"></i>';
+            removeButton.onclick = () => {
+                container.removeChild(fileElement);
+                if (type === 'image') {
+                    uploadedImageFiles = uploadedImageFiles.filter(f => f !== file);
+                } else {
+                    uploadedVideoFiles = uploadedVideoFiles.filter(f => f !== file);
+                }
+            };
+            
+            const fileInfo = document.createElement('div');
+            fileInfo.className = 'file-info';
+            
+            const fileName = document.createElement('div');
+            fileName.className = 'file-name';
+            fileName.textContent = file.name;
+            
+            const fileSize = document.createElement('div');
+            fileSize.className = 'file-size';
+            fileSize.textContent = formatFileSize(file.size);
+            
+            fileInfo.appendChild(fileName);
+            fileInfo.appendChild(fileSize);
+            
+            fileElement.appendChild(mediaElement);
+            fileElement.appendChild(removeButton);
+            fileElement.appendChild(fileInfo);
+            
+            container.appendChild(fileElement);
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function showAlert(message, type) {
+            const alert = type === 'success' ? alertSuccess : alertError;
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+        
+        function updateProgress(percentage) {
+            progressContainer.style.display = 'block';
+            progressFill.style.width = percentage + '%';
+            
+            if (percentage >= 100) {
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }, 1000);
+            }
+        }
+        
+        function clearForm() {
+            if (confirm('Are you sure you want to clear the form? All entered data will be lost.')) {
+                form.reset();
+                uploadedImages.innerHTML = '';
+                uploadedVideos.innerHTML = '';
+                uploadedImageFiles = [];
+                uploadedVideoFiles = [];
+                charCount.textContent = '0';
+            }
+        }
+        
+        // Setup file uploads
+        setupFileUpload(imageUploadArea, imageInput, uploadedImageFiles, uploadedImages, 'image');
+        setupFileUpload(videoUploadArea, videoInput, uploadedVideoFiles, uploadedVideos, 'video');
+        
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Validate required fields
+            const fullText = document.getElementById('full_text').value.trim();
+            const source = document.getElementById('source').value.trim();
+            const district = document.getElementById('district').value.trim();
+            const state = document.getElementById('state').value.trim();
+            const country = document.getElementById('country').value.trim();
+            
+            if (!fullText || !source || !district || !state || !country) {
+                showAlert('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            if (fullText.length < 10) {
+                showAlert('Full text must be at least 10 characters long', 'error');
+                return;
+            }
+            
+            // Update button state
+            submitButton.disabled = true;
+            submitText.style.display = 'none';
+            submitSpinner.style.display = 'inline';
+            
+            try {
+                console.log('Starting news submission process...');
+                
+                // Step 1: Upload files if any
+                let imagePaths = [];
+                let videoPaths = [];
+                
+                if (uploadedImageFiles.length > 0) {
+                    console.log(`Uploading ${uploadedImageFiles.length} image files...`);
+                    updateProgress(25);
+                    const formData = new FormData();
+                    uploadedImageFiles.forEach(file => {
+                        formData.append('files', file);
+                    });
+                    
+                    const imageResponse = await fetch('/reporter/upload/images', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    console.log('Image upload response status:', imageResponse.status);
+                    
+                    if (!imageResponse.ok) {
+                        throw new Error(`Image upload failed: HTTP ${imageResponse.status}`);
+                    }
+                    
+                    const imageResult = await imageResponse.json();
+                    console.log('Image upload result:', imageResult);
+                    
+                    if (imageResult.success) {
+                        imagePaths = imageResult.uploaded.map(file => file.path);
+                        console.log('Image paths:', imagePaths);
+                    } else {
+                        throw new Error(imageResult.error || 'Image upload failed');
+                    }
+                }
+                
+                if (uploadedVideoFiles.length > 0) {
+                    console.log(`Uploading ${uploadedVideoFiles.length} video files...`);
+                    updateProgress(50);
+                    const formData = new FormData();
+                    uploadedVideoFiles.forEach(file => {
+                        formData.append('files', file);
+                    });
+                    
+                    const videoResponse = await fetch('/reporter/upload/videos', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    console.log('Video upload response status:', videoResponse.status);
+                    
+                    if (!videoResponse.ok) {
+                        throw new Error(`Video upload failed: HTTP ${videoResponse.status}`);
+                    }
+                    
+                    const videoResult = await videoResponse.json();
+                    console.log('Video upload result:', videoResult);
+                    
+                    if (videoResult.success) {
+                        videoPaths = videoResult.uploaded.map(file => file.path);
+                        console.log('Video paths:', videoPaths);
+                    } else {
+                        throw new Error(videoResult.error || 'Video upload failed');
+                    }
+                }
+                
+                // Step 2: Submit news
+                updateProgress(75);
+                const newsData = {
+                    full_text: fullText,
+                    source: source,
+                    location: {
+                        district: district,
+                        state: state,
+                        country: country
+                    },
+                    image_paths: imagePaths,
+                    video_paths: videoPaths
+                };
+                
+                console.log('Submitting news data:', newsData);
+                
+                const submitResponse = await fetch('/reporter/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newsData)
+                });
+                
+                console.log('News submission response status:', submitResponse.status);
+                
+                if (!submitResponse.ok) {
+                    throw new Error(`News submission failed: HTTP ${submitResponse.status}`);
+                }
+                
+                const submitResult = await submitResponse.json();
+                console.log('News submission result:', submitResult);
+                
+                if (submitResult.success) {
+                    updateProgress(100);
+                    showAlert(`News submitted successfully! Title: "${submitResult.title}"`, 'success');
+                    
+                    // Reset form
+                    clearForm();
+                } else {
+                    throw new Error(submitResult.error || 'Unknown submission error');
+                }
+                
+            } catch (error) {
+                console.error('Submission error details:', error);
+                console.error('Error message:', error.message);
+                console.error('Error stack:', error.stack);
+                showAlert(`Submission failed: ${error.message}`, 'error');
+            } finally {
+                // Reset button state
+                submitButton.disabled = false;
+                submitText.style.display = 'inline';
+                submitSpinner.style.display = 'none';
+                console.log('Submission process completed');
+            }
+        });
+    });
+</script>
+{% endblock %}

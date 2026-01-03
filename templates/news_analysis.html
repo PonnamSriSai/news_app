@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>News Analysis</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: Inter, sans-serif;
+      background: #f9fafb;
+      padding: 30px;
+      color: #111;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      resize: vertical;
+    }
+
+    .btn {
+      margin-top: 16px;
+      padding: 12px 18px;
+      background: #f5c518;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: #e0b616;
+    }
+
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 24px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .metric {
+      text-align: center;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .metric h3 {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .metric span {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .progress {
+      height: 8px;
+      background: #eee;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress div {
+      height: 100%;
+      background: #f5c518;
+    }
+
+    .badge {
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #f5c518;
+    }
+
+    .sources {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+
+    .source {
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #eee;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .source:hover {
+      border-color: #f5c518;
+    }
+
+    .source small {
+      color: #666;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+  <h1>Run News Analysis</h1>
+
+  <textarea id="newsText" placeholder="Paste news content here..."></textarea>
+
+  <button class="btn" onclick="runAnalysis()">Analyze News</button>
+
+  <!-- RESULT -->
+  <div id="result" class="hidden">
+
+    <div class="card">
+      <h2 id="title"></h2>
+      <p id="summary"></p>
+    </div>
+
+    <div class="card metrics">
+      <div class="metric">
+        <h3>Credibility</h3>
+        <span id="credibility"></span>
+        <div class="progress"><div id="credBar"></div></div>
+      </div>
+
+      <div class="metric">
+        <h3>Fake Probability</h3>
+        <span id="fakeProb"></span>
+        <div class="progress"><div id="fakeBar"></div></div>
+      </div>
+
+      <div class="metric">
+        <h3>Sentiment</h3>
+        <span id="sentiment"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <strong>Status:</strong> <span id="status" class="badge"></span>
+      <br><br>
+      <strong>Category:</strong> <span id="category"></span>
+    </div>
+
+    <div class="card">
+      <h3>Evidence Sources</h3>
+      <div id="sources" class="sources"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function runAnalysis() {
+  const text = document.getElementById("newsText").value.trim();
+
+  if (!text) {
+    alert("Please enter news text to analyze");
+    return;
+  }
+
+  // Show loading state
+  const button = document.querySelector('.btn');
+  const originalText = button.textContent;
+  button.textContent = "Analyzing...";
+  button.disabled = true;
+
+  fetch("/user/news-analysis/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      text: text
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    // Reset button state
+    button.textContent = originalText;
+    button.disabled = false;
+
+    if (!data.success) {
+      alert(data.error || "Analysis failed");
+      return;
+    }
+
+    const result = data.result;
+    document.getElementById("result").classList.remove("hidden");
+
+    document.getElementById("title").innerText = result.title;
+    document.getElementById("summary").innerText = result.summary;
+
+    document.getElementById("credibility").innerText = Math.round(result.credibility * 100) + "%";
+    document.getElementById("credBar").style.width = (result.credibility * 100) + "%";
+
+    document.getElementById("fakeProb").innerText = Math.round(result.fake_prob * 100) + "%";
+    document.getElementById("fakeBar").style.width = (result.fake_prob * 100) + "%";
+
+    document.getElementById("sentiment").innerText = result.sentiment;
+    document.getElementById("status").innerText = result.status;
+    document.getElementById("category").innerText = result.category;
+
+    const sourcesDiv = document.getElementById("sources");
+    sourcesDiv.innerHTML = "";
+
+    if (result.evidence_sources && result.evidence_sources.length > 0) {
+      result.evidence_sources.forEach(src => {
+        const a = document.createElement("a");
+        a.href = src.url;
+        a.target = "_blank";
+        a.className = "source";
+        a.innerHTML = `<strong>${src.title}</strong><br><small>${new URL(src.url).hostname}</small>`;
+        sourcesDiv.appendChild(a);
+      });
+    } else {
+      sourcesDiv.innerHTML = '<p>No evidence sources found</p>';
+    }
+
+    // Scroll to results
+    document.getElementById("result").scrollIntoView({ behavior: "smooth" });
+  })
+  .catch(error => {
+    // Reset button state
+    button.textContent = originalText;
+    button.disabled = false;
+    console.error("Analysis error:", error);
+    alert("Analysis failed. Please try again.");
+  });
+}
+</script>
+
+</body>
+</html>

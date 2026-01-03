@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>PSLVNews - India's #1 Hyperlocal Short News App</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+
+</head>
+<body>
+    <div id="register-modal" class="modal-overlay" style="display: block;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Register for PSLVNews</h2>
+      <button class="modal-close" onclick="closeModal('register-modal')">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <form action="{{ url_for('register') }}" method="post" id="register-form" class="modal-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="first-name" class="form-label">First Name</label>
+          <input type="text" id="first-name" name="first_name" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label for="last-name" class="form-label">Last Name</label>
+          <input type="text" id="last-name" name="last_name" class="form-input" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="register-email" class="form-label">Email</label>
+        <input type="email" id="register-email" name="email" class="form-input" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="register-password" class="form-label">Password</label>
+          <input type="password" id="register-password" name="password" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label for="confirm-password" class="form-label">Confirm Password</label>
+          <input type="password" id="confirm-password" name="confirm_password" class="form-input" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="age" class="form-label">Age</label>
+          <input type="number" id="age" name="age" class="form-input" required min="13" max="120">
+        </div>
+        <div class="form-group">
+          <label for="location" class="form-label">Location</label>
+          <input type="text" id="location" name="location" class="form-input" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="role" class="form-label">Role</label>
+        <select id="role" name="role" class="form-input" required>
+          <option value="user">User</option>
+          <option value="news_reporter">News Reporter</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <button type="submit" class="modal-submit-btn">Register</button>
+    </form>
+    <div class="modal-footer">
+      <p>Already have an account? <a href="#" onclick="switchToLogin()">Login here</a></p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

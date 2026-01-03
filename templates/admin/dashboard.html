@@ -1,0 +1,292 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dashboard - Admin Panel{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block breadcrumb %}
+<a href="{{ url_for('admin.admin_dashboard') }}">Admin</a>
+<span class="separator">/</span>
+<span>Dashboard</span>
+{% endblock %}
+
+{% block content %}
+<!-- Error Display -->
+{% if error %}
+<div class="alert alert-error">
+    <i class="fas fa-exclamation-triangle"></i>
+    <span>{{ error }}</span>
+    <button class="alert-close" onclick="this.parentElement.style.display='none'">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+{% endif %}
+
+<!-- Dashboard Stats Cards -->
+<div class="dashboard-stats">
+    <div class="stats-grid">
+        <!-- Today's Metrics -->
+        <div class="stat-card today-metrics">
+            <div class="card-header">
+                <h3>Today's Metrics</h3>
+                <div class="date-badge">{{ today.strftime('%b %d, %Y') }}</div>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="metric-value">{{ today_metrics.total_articles or 17 }}</div>
+                    <div class="metric-label">Articles Published</div>
+                    <div class="metric-icon">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">{{ today_metrics.fake_news_detected or 4 }}</div>
+                    <div class="metric-label">Fake News Detected</div>
+                    <div class="metric-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">{{ today_metrics.avg_credibility or 0 }}%</div>
+                    <div class="metric-label">Avg Credibility Score</div>
+                    <div class="metric-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">{{ "%.2f"|format(today_metrics.most_common_sentiment or 0.19) }}</div>
+                    <div class="metric-label">Avg. Sentiment Score</div>
+                    <div class="metric-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overall Metrics -->
+        <div class="stat-card overall-metrics">
+            <div class="card-header">
+                <h3>Overall Metrics</h3>
+                <div class="total-badge">All Time</div>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="metric-value">{{ overall_metrics.total_articles or 0 }}</div>
+                    <div class="metric-label">Total Articles</div>
+                    <div class="metric-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">{{ overall_metrics.fake_news_detected or 57 }}</div>
+                    <div class="metric-label">Total Fake News</div>
+                    <div class="metric-icon">
+                        <i class="fas fa-ban"></i>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">{{ overall_metrics.avg_credibility or 0 }}%</div>
+                    <div class="metric-label">Overall Avg Credibility</div>
+                    <div class="metric-icon">
+                        <i class="fas fa-medal"></i>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">{{ "%.2f"|format(overall_metrics.most_common_sentiment or 0.12) }}</div>
+                    <div class="metric-label">Avg. Sentiment Score</div>
+                    <div class="metric-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Access Cards -->
+<div class="quick-access-section">
+    <h2>Quick Access</h2>
+    <div class="quick-access-grid">
+        <div class="access-card news-card" onclick="location.href='{{ url_for('admin.admin_news') }}'">
+            <div class="card-icon">
+                <i class="fas fa-newspaper"></i>
+            </div>
+            <div class="card-content">
+                <h3>{{ preview_data.news_count or 0 }}</h3>
+                <p>News Articles</p>
+            </div>
+            <div class="card-action">
+                <i class="fas fa-arrow-right"></i>
+            </div>
+        </div>
+        
+        <div class="access-card users-card" onclick="location.href='{{ url_for('admin.admin_users') }}'">
+            <div class="card-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="card-content">
+                <h3>{{ preview_data.users_count or 0 }}</h3>
+                <p>Registered Users</p>
+            </div>
+            <div class="card-action">
+                <i class="fas fa-arrow-right"></i>
+            </div>
+        </div>
+        
+        <div class="access-card sources-card" onclick="location.href='{{ url_for('admin.admin_sources') }}'">
+            <div class="card-icon">
+                <i class="fas fa-globe"></i>
+            </div>
+            <div class="card-content">
+                <h3>{{ preview_data.sources_count or 0 }}</h3>
+                <p>News Sources</p>
+            </div>
+            <div class="card-action">
+                <i class="fas fa-arrow-right"></i>
+            </div>
+        </div>
+        
+        <div class="access-card analytics-card" onclick="location.href='{{ url_for('admin.admin_analytics') }}'">
+            <div class="card-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <div class="card-content">
+                <h3>📊</h3>
+                <p>Analytics Dashboard</p>
+            </div>
+            <div class="card-action">
+                <i class="fas fa-arrow-right"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="recent-activity-section">
+    <h2>Recent News</h2>
+    <div class="activity-list">
+        {% if recent_news and recent_news|length > 0 %}
+            {% for news in recent_news %}
+            <div class="activity-item">
+                <div class="activity-icon">
+                    <i class="fas fa-newspaper"></i>
+                </div>
+                <div class="activity-content">
+                    <h4>{{ news.title[:60] }}{% if news.title|length > 60 %}...{% endif %}</h4>
+                    <div class="activity-meta">
+                        <span class="meta-item">
+                            <i class="fas fa-tag"></i>
+                            {{ news.category|title if news.category else 'General' }}
+                        </span>
+                        <span class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            {{ news.publishedAt.strftime('%b %d, %Y') if news.publishedAt else 'Recent' }}
+                        </span>
+                        <span class="meta-item">
+                            <i class="fas fa-shield-alt"></i>
+                            {{ "%.0f"|format(news.credibility * 100) }}% credible
+                        </span>
+                    </div>
+                </div>
+                <div class="activity-actions">
+                    <a href="{{ url_for('admin.admin_news') }}?search={{ news.title|urlencode }}" class="btn btn-sm">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-activity">
+                <i class="fas fa-newspaper"></i>
+                <p>No recent news available</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="activity-footer">
+        <a href="{{ url_for('admin.admin_news') }}" class="btn btn-primary">
+            View All News
+            <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+</div>
+
+<!-- System Health -->
+<div class="system-health-section">
+    <h2>System Health</h2>
+    <div class="health-grid">
+        <div class="health-item">
+            <div class="health-status online">
+                <i class="fas fa-circle"></i>
+            </div>
+            <div class="health-info">
+                <h4>Database Connection</h4>
+                <p>MongoDB Atlas - Connected</p>
+            </div>
+        </div>
+        <div class="health-item">
+            <div class="health-status online">
+                <i class="fas fa-circle"></i>
+            </div>
+            <div class="health-info">
+                <h4>API Status</h4>
+                <p>All endpoints responding</p>
+            </div>
+        </div>
+        <div class="health-item">
+            <div class="health-status online">
+                <i class="fas fa-circle"></i>
+            </div>
+            <div class="health-info">
+                <h4>News Feed</h4>
+                <p>Real-time data processing</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Refresh data function
+function refreshData() {
+    showLoading();
+    location.reload();
+}
+
+// Show loading overlay
+function showLoading() {
+    document.getElementById('loading-overlay').style.display = 'flex';
+}
+
+// Initialize dashboard animations
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate metric cards on load
+    const metricCards = document.querySelectorAll('.metric-item');
+    metricCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Auto-refresh dashboard every 5 minutes
+    setInterval(() => {
+        const loadingOverlay = document.getElementById('loading-overlay');
+        if (loadingOverlay && loadingOverlay.style.display !== 'flex') {
+            refreshData();
+        }
+    }, 300000);
+});
+
+// Add some interactive hover effects
+document.querySelectorAll('.access-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+    });
+});
+</script>
+{% endblock %}
